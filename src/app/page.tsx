@@ -1,103 +1,101 @@
-import Image from "next/image";
+'use client'
+
+import type { Post } from '@/app/api/posts/route'
+
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { signIn, useSession } from 'next-auth/react'
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    const [posts, setPosts] = useState<Post[]>([])
+    const [loading, setLoading] = useState(true)
+    const { data: session } = useSession()
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    useEffect(() => {
+        fetch('/api/posts')
+            .then(res => res.json())
+            .then(data => {
+                setPosts(data)
+                setLoading(false)
+            })
+            .catch(() => setLoading(false))
+    }, [])
+
+    if (loading) {
+        return (
+            <div className='w-full h-full flex items-center justify-center'>
+                <span className='text-[#853C4F] text-[64px]'>
+                    Загрузка...
+                </span>
+            </div>
+        )
+    }
+
+    return (
+        <div className='min-h-screen min-w-screen flex items-center justify-center'>
+            <div className='fixed p-[20px] right-0 top-0 flex flex-col'>
+                <span className='text-[64px] text-[#853C4F] font-bold text-right'>
+                    JOJO
+                </span>
+                <span className='text-[24px] text-[#3FBDAD] font-bold text-right'>
+                    STAND BLOG
+                </span>
+            </div>
+            <img
+                className='fixed left-0 top-1/2 -translate-y-1/2 w-[300px] max-w-[30vw]'
+                src='/jojo.png'
+                alt='ДжоДжо' />
+            <div className='border-l-4 border-r-4 border-[#3FBDAD] flex flex-col mb-auto max-w-[950px]'>
+                <img
+                    className='w-full'
+                    src='/cover.png'
+                    alt='Обложка' />
+                <div className='flex border-b-4 border-[#853C4F] w-full p-[10px]'>
+                    <span className='absolute left-1/2 -translate-x-1/2 text-[16px] text-[#3FBDAD] text-center font-bold'>
+                        YARE YARE DAZE
+                    </span>
+                    {session ? (
+                        <span className='text-[16px] text-[#3FBDAD] text-center font-bold cursor-pointer ml-auto hover:underline'>
+                            <Link href={'/profile'}>
+                                ПРОФИЛЬ
+                            </Link>
+                        </span>
+                    ): (
+                        <button
+                            className='text-[16px] text-[#3FBDAD] text-center font-bold cursor-pointer ml-auto hover:underline'
+                            onClick={() => signIn()}>
+                            ВОЙТИ
+                        </button>
+                    )}
+                </div>
+                <div className='flex flex-col p-[20px] gap-[20px]'>
+                    <span className='text-[24px] text-[#853C4F] text-left font-bold'>
+                        Стенды Вселенной ДжоДжо
+                    </span>
+                    <div className='flex flex-col gap-[10px]'>
+                        {posts.map((post) => (
+                            <Link
+                                key={post.id}
+                                href={`/posts/${post.id}`}
+                                className='group border-2 border-[#853C4F] rounded-[20px] p-[20px] cursor-pointer hover:border-[#3FBDAD] flex flex-col'>
+                                <span className='text-[24px] text-[#853C4F] text-left group-hover:text-[#3FBDAD]'>
+                                    {post.title}
+                                </span>
+                                <span className='text-[20px] text-[#853C4F] text-left pb-[10px] group-hover:text-[#3FBDAD]'>
+                                    {post.date}
+                                </span>
+                                <span className='text-[20px] text-left'>
+                                    {post.description}
+                                </span>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            </div>
+            <img
+                className='fixed right-0 top-1/2 -translate-y-1/2 w-[300px] max-w-[30vw]'
+                src="/dio.png"
+                alt="Дио" />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+    )
 }
